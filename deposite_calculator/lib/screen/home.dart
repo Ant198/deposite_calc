@@ -1,5 +1,5 @@
 import 'package:deposite_calculator/screen/main_data/main_data.dart';
-import 'package:deposite_calculator/shared/styled_text.dart';
+import 'package:deposite_calculator/models/styled_text.dart';
 import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {

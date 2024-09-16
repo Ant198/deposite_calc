@@ -1,4 +1,4 @@
-import 'package:deposite_calculator/shared/styled_text.dart';
+import 'package:deposite_calculator/models/styled_text.dart';
 import 'package:deposite_calculator/theme.dart';
 import 'package:flutter/material.dart';
 

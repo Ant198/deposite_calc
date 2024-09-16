@@ -1,10 +1,10 @@
 //import 'package:deposite_calculator/models/dropdown_model.dart';
 import 'dart:math';
 import 'package:deposite_calculator/models/dropdown_model.dart';
-import 'package:deposite_calculator/models/input_model.dart';
+import 'package:deposite_calculator/models/styled_input.dart';
 import 'package:deposite_calculator/screen/result.dart';
-import 'package:deposite_calculator/shared/styled_button.dart';
-import 'package:deposite_calculator/shared/styled_text.dart';
+import 'package:deposite_calculator/models/styled_button.dart';
+import 'package:deposite_calculator/models/styled_text.dart';
 import 'package:flutter/material.dart';
 
 class MainData extends StatefulWidget {
@@ -15,11 +15,12 @@ class MainData extends StatefulWidget {
 }
 
 class _MainDataState extends State<MainData> {
+
+  final _keyForm = GlobalKey<FormState>();
   
   final _initialInvestment = TextEditingController();
   final _interestRate = TextEditingController();
   final _years = TextEditingController();
-  final _months = TextEditingController();
   final _contribution = TextEditingController();
   String selectedPeriodCon = 'monthly';
   List<String> contributionItems = ['monthly', 'semiannual', 'annual'];
@@ -57,54 +58,26 @@ class _MainDataState extends State<MainData> {
     _initialInvestment.dispose();
     _interestRate.dispose();
     _years.dispose();
-    _months.dispose();
     _contribution.dispose();
     super.dispose();
   }
 
   void handleSubmit() {
-    double initialInvestment;
-    double interestRate;
-    double compoundFreq; 
-    double years;
-    double regContribution;
-    double paymentFreq;
-    if(_initialInvestment.text.trim().isEmpty) {
-      showDialog(
-        context: context, 
-        builder: (ctx) {
-          return AlertDialog(
-            title: const StyledText(text: 'input error'),
-            content: const StyledText(text: 'Please enter the initial investment.'),
-            actions: [
-              StyledButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const StyledHeading(text: 'Close')),
-            ],
-          );
-        },
+    double? initialInvestment;
+    double? interestRate;
+    double? compoundFreq; 
+    double? years;
+    double? regContribution;
+    double? paymentFreq;
+    if (_keyForm.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: StyledText(text: 'Processing Data'))
       );
-      return;
-    } else {
+    }
+    if(_initialInvestment.text.trim().isNotEmpty) {
       initialInvestment = double.parse(_initialInvestment.text);
     }
-    if(_interestRate.text.trim().isEmpty) {
-      showDialog(
-        context: context, 
-        builder: (ctx) {
-          return AlertDialog(
-            title: const StyledText(text: 'input error'),
-            content: const StyledText(text: 'Please enter the interest Rate.'),
-            actions: [
-              StyledButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const StyledHeading(text: 'Close')),
-            ],
-          );
-        },
-      );
-      return;
-    } else {
+    if(_interestRate.text.trim().isNotEmpty) {
       interestRate = double.parse(_interestRate.text) / 100;
     }
     if(_contribution.text.trim().isEmpty) {
@@ -121,23 +94,7 @@ class _MainDataState extends State<MainData> {
     } else {
       paymentFreq = 0;
     }
-    if(_years.text.trim().isEmpty) {
-      showDialog(
-        context: context, 
-        builder: (ctx) {
-          return AlertDialog(
-            title: const StyledText(text: 'input error'),
-            content: const StyledText(text: 'Please enter number of years.'),
-            actions: [
-              StyledButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const StyledHeading(text: 'Close')),
-            ],
-          );
-        },
-      );
-      return;
-    } else {
+    if(_years.text.trim().isNotEmpty) {
       years = double.parse(_years.text);
     }
     if(selectedPeriodCap == 'monthly') {
@@ -149,17 +106,22 @@ class _MainDataState extends State<MainData> {
     } else {
       compoundFreq = 1;
     }
-    num compoundFactor = pow((1 + interestRate / compoundFreq), compoundFreq * years);
-    double amount = initialInvestment * compoundFactor;
+    num compoundFactor = pow((1 + interestRate! / compoundFreq), compoundFreq * years!);
+    double amount = initialInvestment! * compoundFactor;
     num contributionAmount = 0;
     for (int i = 1; i <= years * paymentFreq; i++) {
       contributionAmount += regContribution * pow((1 + interestRate / compoundFreq), compoundFreq * (years - i / paymentFreq));
     }
     double totalAmount = amount + contributionAmount;
+    
     Navigator.push(context, MaterialPageRoute(builder: (ctx) => Result(totalAmount: totalAmount, contributionAmount: contributionAmount, amount: amount)));
-    print('$amount $selectedCurrency');
-    print('$contributionAmount $selectedCurrency');
-    print('$totalAmount $selectedCurrency');
+  }
+
+  void clearFields() {
+    _initialInvestment.clear();
+    _interestRate.clear();
+    _years.clear();
+    _contribution.clear();
   }
 
   @override
@@ -170,24 +132,25 @@ class _MainDataState extends State<MainData> {
     //Currency
         DropdowmButtonModel(onChanged: updateCurrency, items: currencyItems,),
         const SizedBox(height: 10,),
-    //Initial Investment
-        TextInput(nameController: _initialInvestment, text: 'initial investment'),
-        const SizedBox(height: 10,),
-    //InterestRate
-        TextInput(nameController: _interestRate, text: 'interest rate'),
-        const SizedBox(height: 10,),
-    //Investment Length
-        const StyledText(text: 'investment length'),
-        Row(
-          children: [
-            const SizedBox(height: 10,),
-            Expanded(child: TextInput(nameController: _years, text: 'years')),
-            const SizedBox(width: 10),
-            Expanded(child: TextInput(nameController: _months, text: 'month'))
-          ]
+        Form(
+          key: _keyForm,
+          child: Column(
+            children: [
+        //Initial Investment
+              TextInput(nameController: _initialInvestment, text: 'initial investment'),
+              const SizedBox(height: 10,),
+        //InterestRate
+              TextInput(nameController: _interestRate, text: 'interest rate'),
+              const SizedBox(height: 10,),
+        //Investment Length
+              const StyledText(text: 'investment length'),
+              const SizedBox(height: 10,),
+              TextInput(nameController: _years, text: 'years'),
+        //Regular Contribution
+              TextInput(nameController: _contribution, text: 'regular contribution'),
+            ],
+          )
         ),
-    //Regular Contribution
-        TextInput(nameController: _contribution, text: 'regular contribution'),
         const SizedBox(height: 5,),
         const StyledText(text: 'Period of contribution'),
         const SizedBox(height: 0,),
@@ -211,7 +174,7 @@ class _MainDataState extends State<MainData> {
             const SizedBox(width: 10,),
             Expanded(
               child: StyledButton(
-                onPressed: () {},
+                onPressed: clearFields,
                 child: const StyledTitle(text: 'clear')
               ),
             )
