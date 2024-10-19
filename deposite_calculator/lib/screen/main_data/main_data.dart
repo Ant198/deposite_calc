@@ -1,11 +1,12 @@
 //import 'package:deposite_calculator/models/dropdown_model.dart';
-import 'dart:math';
 import 'package:deposite_calculator/models/dropdown_model.dart';
 import 'package:deposite_calculator/models/styled_input.dart';
 import 'package:deposite_calculator/screen/result.dart';
 import 'package:deposite_calculator/models/styled_button.dart';
 import 'package:deposite_calculator/models/styled_text.dart';
+import 'package:deposite_calculator/services/input_store.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class MainData extends StatefulWidget {
   const MainData({super.key});
@@ -15,9 +16,7 @@ class MainData extends StatefulWidget {
 }
 
 class _MainDataState extends State<MainData> {
-
   final _keyForm = GlobalKey<FormState>();
-  
   final _initialInvestment = TextEditingController();
   final _interestRate = TextEditingController();
   final _years = TextEditingController();
@@ -28,6 +27,7 @@ class _MainDataState extends State<MainData> {
   List<String> capitalizationItems = ['monthly', 'three months', 'semiannual', 'annual'];
   String selectedCurrency = 'UAH';
   List<String> currencyItems = ['UAH', 'USD'];
+  
 
   void updateCurrency(String? newValue) {
     if(newValue is String) {
@@ -62,59 +62,45 @@ class _MainDataState extends State<MainData> {
     super.dispose();
   }
 
-  void handleSubmit() {
-    double? initialInvestment;
-    double? interestRate;
-    double? compoundFreq; 
-    double? years;
-    double? regContribution;
-    double? paymentFreq;
+  void handleSubmit(updateData) {
     if (_keyForm.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: StyledText(text: 'Processing Data'))
       );
     }
     if(_initialInvestment.text.trim().isNotEmpty) {
-      initialInvestment = double.parse(_initialInvestment.text);
+      updateData.initialInvestment = double.parse(_initialInvestment.text);
     }
     if(_interestRate.text.trim().isNotEmpty) {
-      interestRate = double.parse(_interestRate.text) / 100;
+      updateData.interestRate = double.parse(_interestRate.text) / 100;
     }
     if(_contribution.text.trim().isEmpty) {
-      regContribution = 0;
+      updateData.contribution = 0;
     } else {
-      regContribution = double.parse(_contribution.text);
+      updateData.contribution = double.parse(_contribution.text);
     }
     if(selectedPeriodCon == 'monthly') {
-      paymentFreq = 12;
+      updateData.paymentFreq = 12;
     } else if(selectedPeriodCon == 'semiannual') {
-      paymentFreq = 2;
+      updateData.paymentFreq = 2;
     } else if(selectedPeriodCon == 'annual') {
-      paymentFreq = 1;
+      updateData.paymentFreq = 1;
     } else {
-      paymentFreq = 0;
+      updateData.paymentFreq = 0;
     }
     if(_years.text.trim().isNotEmpty) {
-      years = double.parse(_years.text);
+      updateData.years = double.parse(_years.text);
     }
     if(selectedPeriodCap == 'monthly') {
-      compoundFreq = 12;
+      updateData.compoundFreq = 12;
     } else if(selectedPeriodCap == 'three months') {
-      compoundFreq = 4;
+      updateData.compoundFreq = 4;
     } else if(selectedPeriodCap == 'semiannual') {
-      compoundFreq = 2;
+      updateData.compoundFreq = 2;
     } else {
-      compoundFreq = 1;
+      updateData.compoundFreq = 1;
     }
-    num compoundFactor = pow((1 + interestRate! / compoundFreq), compoundFreq * years!);
-    double amount = initialInvestment! * compoundFactor;
-    num contributionAmount = 0;
-    for (int i = 1; i <= years * paymentFreq; i++) {
-      contributionAmount += regContribution * pow((1 + interestRate / compoundFreq), compoundFreq * (years - i / paymentFreq));
-    }
-    double totalAmount = amount + contributionAmount;
-    
-    Navigator.push(context, MaterialPageRoute(builder: (ctx) => Result(totalAmount: totalAmount, contributionAmount: contributionAmount, amount: amount)));
+    Navigator.push(context, MaterialPageRoute(builder: (ctx) => const Result()));
   }
 
   void clearFields() {
@@ -126,6 +112,7 @@ class _MainDataState extends State<MainData> {
 
   @override
   Widget build(BuildContext context) {
+    var provider = Provider.of<InputStore>(context, listen: false);
     return Column(
       children: [
         const StyledTitle(text: 'main data'),
@@ -167,7 +154,7 @@ class _MainDataState extends State<MainData> {
           children: [
             Expanded(
               child: StyledButton(
-                onPressed: handleSubmit,
+                onPressed: () => handleSubmit(provider),
                 child: const StyledTitle(text: 'calculate')
               ),
             ),
