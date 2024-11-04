@@ -6,13 +6,10 @@ class InputStore extends ChangeNotifier {
   late double _years;
   late double _contribution;
   late double _selectedPeriodCon;
-  //final List<String> _contributionItems = ['monthly', 'semiannual', 'annual'];
   late double _selectedPeriodCap;
-  //final List<String> _capitalizationItems = ['monthly', 'three months', 'semiannual', 'annual'];
   late String _selectedCurrency;
   late int _compoundFreq;
   late int _paymentFreq;
-  //final List<String> _currencyItems = ['UAH', 'USD'];
 
   get getInitialInvestment => _initialInvestment;
   get interestRate => _interestRate;
@@ -26,7 +23,6 @@ class InputStore extends ChangeNotifier {
 
 
   set initialInvestment(value) {
-    print('3 - $value');
     _initialInvestment = value;
     notifyListeners();
   }

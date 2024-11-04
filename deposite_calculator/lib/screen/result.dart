@@ -46,12 +46,3 @@ class Result extends StatelessWidget {
     );
   }
 }
-/*
-num compoundFactor = pow((1 + interestRate! / compoundFreq), compoundFreq * years!);
-    double amount = initialInvestment! * compoundFactor;
-    num contributionAmount = 0;
-    for (int i = 1; i <= years * paymentFreq; i++) {
-      contributionAmount += regContribution * pow((1 + interestRate / compoundFreq), compoundFreq * (years - i / paymentFreq));
-    }
-    double totalAmount = amount + contributionAmount;
-*/
